@@ -3,11 +3,11 @@
 '''
 OPS445 Assignment 2
 Program: assignment2.py 
-Author: "Student Name"
-Semester: "Enter Winter/Summer/Fall Year"
+Author: "XIN LI"
+Semester: "Fall 2024"
 
 The python code in this file is original work written by
-"Student Name". No code in this file is copied from any other source 
+"XIN LI". No code in this file is copied from any other source 
 except those provided by the course instructor, including any person, 
 textbook, or on-line resource. I have not shared this python script 
 with anyone or anything except for submission for grading.  
@@ -22,30 +22,30 @@ import argparse
 import os, sys
 
 def parse_command_args() -> object:
-    "Set up argparse here. Call this function inside main."
     parser = argparse.ArgumentParser(description="Memory Visualiser -- See Memory Usage Report with bar charts",epilog="Copyright 2023")
     parser.add_argument("-l", "--length", type=int, default=20, help="Specify the length of the graph. Default is 20.")
     # add argument for "human-readable". USE -H, don't use -h! -h is reserved for --help which is created automatically.
-    # check the docs for an argparse option to store this as a boolean.
     parser.add_argument("program", type=str, nargs='?', help="if a program is specified, show memory use of all associated processes. Show only total use is not.")
     args = parser.parse_args()
     return args
-# create argparse function
-# -H human readable
-# -r running only
 
 def percent_to_graph(percent: float, length: int=20) -> str:
-    "turns a percent 0.0 - 1.0 into a bar graph"
-    ...
-# percent to graph function
+    filled_length = int(length * percent)
+    return '#' * filled_length + ' ' * (length - filled_length) 
+
 
 def get_sys_mem() -> int:
-    "return total system memory (used or available) in kB"
-    ...
+    with open("/proc/meminfo", "r") as f:
+        for line in f:
+            if line.startswith("MemTotal:"):
+                return int(line.split()[1]) 
+    
 
 def get_avail_mem() -> int:
-    "return total memory that is available"
-    ...
+    with open("/proc/meminfo", "r") as f:
+        for line in f:
+            if line.startswith("MemAvailable:"):
+                return int(line.split()[1]) 
 
 def pids_of_prog(app_name: str) -> list:
     "given an app name, return all pids associated with app"
@@ -56,8 +56,7 @@ def rss_mem_of_pid(proc_id: str) -> int:
     ...
 
 def bytes_to_human_r(kibibytes: int, decimal_places: int=2) -> str:
-    "turn 1,024 into 1 MiB, for example"
-    suffixes = ['KiB', 'MiB', 'GiB', 'TiB', 'PiB']  # iB indicates 1024
+    suffixes = ['KiB', 'MiB', 'GiB', 'TiB', 'PiB']  
     suf_count = 0
     result = kibibytes 
     while result > 1024 and suf_count < len(suffixes):
