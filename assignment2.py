@@ -24,7 +24,7 @@ import os, sys
 def parse_command_args() -> object:
     parser = argparse.ArgumentParser(description="Memory Visualiser -- See Memory Usage Report with bar charts",epilog="Copyright 2023")
     parser.add_argument("-l", "--length", type=int, default=20, help="Specify the length of the graph. Default is 20.")
-    # add argument for "human-readable". USE -H, don't use -h! -h is reserved for --help which is created automatically.
+    parser.add_argument("-H", "--huamn-readable", action = "store_true", help="Display memory values in human readable format.")
     parser.add_argument("program", type=str, nargs='?', help="if a program is specified, show memory use of all associated processes. Show only total use is not.")
     args = parser.parse_args()
     return args
@@ -48,12 +48,30 @@ def get_avail_mem() -> int:
                 return int(line.split()[1]) 
 
 def pids_of_prog(app_name: str) -> list:
-    "given an app name, return all pids associated with app"
-    ...
+    try:
+        result = os.popen(f'pidof{app_name}').read()
+        if result:
+            return result.split()
+        else:
+            return [] 
+    except (FileNotFoundError, NotADirectoryError):
+        print (f'{app_name} not found')
+        return [] 
+
 
 def rss_mem_of_pid(proc_id: str) -> int:
-    "given a process id, return the resident memory used, zero if not found"
-    ...
+    try:
+        smaps_path = f'/proc/{proc_id}/smaps'
+        with open(smaps_path, 'r') as f:
+            for line in f:
+                if line.startswith("VmRss:"):
+                    rss_total = int(line.split()[1])
+                    return rss_total
+        return 0
+    except (FileNotFoundError, PermissionError, NotADirectoryError):
+        print (f'{proc_id} not found')
+        return 0 
+
 
 def bytes_to_human_r(kibibytes: int, decimal_places: int=2) -> str:
     suffixes = ['KiB', 'MiB', 'GiB', 'TiB', 'PiB']  
