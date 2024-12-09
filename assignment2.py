@@ -87,22 +87,22 @@ def bytes_to_human_r(kibibytes: int, decimal_places: int=2) -> str:
 if __name__ == "__main__":
     args = parse_command_args()
     if not args.program:
-        ...
-    else:
-        ...
-    # process args
-    # if no parameter passed, 
-    # open meminfo.
-    # get used memory
-    # get total memory
-    # call percent to graph
-    # print
+        total_mem = get_sys_mem()
+        avail_mem = get_avail_mem()
+        used_mem = total_mem - avail_mem
 
-    # if a parameter passed:
-    # get pids from pidof
-    # lookup each process id in /proc
-    # read memory used
-    # add to total used
-    # percent to graph
-    # take total our of total system memory? or total used memory? total used memory.
-    # percent to graph.
+        print(f"Used Memory: {bytes_to_human_r(used_mem) if args.human_readable else f'{used_mem} KiB'}"
+              f"{percent_to_graph(used_mem / total_mem, args.length)}")
+        print(f"Total Memory: {bytes_to_human_r(total_mem) if args.human_readable else f'{total_mem} KiB'}")
+    else:
+        pids = pids_of_prog(args.program)
+        if not pids:
+            print(f"No processes found for program: {args.program}")
+        else:
+            total_used = 0
+            for pid in pids:
+                rss = rss_mem_of_pid(pid)
+                total_used += rss
+                print(f"pid {bytes_to_human_r(rss) if args.human_readable else f'{rss} KiB'}"
+                      f"{percent_to_graph(rss / get_sys_mem(), args.length)}")
+            print(f"Total Used: {bytes_to_human_r(total_used) if args.human_readable else f'{total_used} KiB'}")
